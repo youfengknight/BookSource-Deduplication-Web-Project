@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>JSON 文件解析示例</title>
+    <link rel="stylesheet" href="icon.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 50px;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #3182ce;
+        }
+
+        button:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .file-upload {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="file"] {
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button.edit {
+            background-color: #3db274;
+            color: white;
+        }
+
+        .action-button.delete {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .action-button:disabled {
+            background-color: #d1d5db !important;
+            cursor: not-allowed;
+        }
+
+        .disabled-button {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .table-header-actions {
+            padding: 12px 15px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #fileContentContainer {
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 统计面板样式 */
+        .stats-dashboard {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f6f8fc 0%, #f1f4f9 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: nowrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2563eb;
+            line-height: 1.2;
+        }
+
+        .stat-title {
+            font-size: 12px;
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Help Icon 样式 */
+        #help-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #help-icon:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .tooltip {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #334155;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            background: white;
+            transform: rotate(45deg);
+            border-left: 1px solid rgba(226, 232, 240, 0.8);
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .tooltip h3 {
+            color: #2563eb;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .tooltip p {
+            margin: 8px 0;
+            color: #64748b;
+        }
+
+        .tooltip ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .tooltip li {
+            margin: 5px 0;
+            color: #64748b;
+        }
+
+        #exportButton {
+            background-color: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        #exportButton:hover {
+            background-color: #059669;
+        }
+
+        #exportButton:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .custom-file-upload {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .custom-file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-upload-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+        }
+
+        .file-upload-btn i {
+            font-size: 18px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+        }
+
+        .duplicate-highlight {
+            background-color: #fff3cd !important;
+        }
+        
+        .duplicate-highlight:hover {
+            background-color: #ffe69c !important;
+        }
+
+        .edit-modal {
+            display: none;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 40%;
+            height: 100%;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .edit-modal.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .edit-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .edit-form textarea {
+            height: calc(100vh - 200px);
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="stats-dashboard">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="originalCount">0</div>
+                    <div class="stat-title">原书源总数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="currentCount">0</div>
+                    <div class="stat-title">当前书源数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✏️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="editedCount">0</div>
+                    <div class="stat-title">已编辑数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="deletedCount">0</div>
+                    <div class="stat-title">已删除数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="duplicateCount">0</div>
+                    <div class="stat-title">重复URL数</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="help-icon">?</div>
+    <div class="tooltip">
+        <h3>使用说明</h3>
+        <p>本工具用于管理和编辑书源配置：</p>
+        <ul>
+            <li>可以通过粘贴或上传导入书源</li>
+            <li>支持编辑和删除单个书源</li>
+            <li>可以批量选择和删除书源</li>
+            <li>支持导出修改后的书源文件</li>
+        </ul>
+        <p>提示：双击表格行可快速编辑书源信息</p>
+    </div>
+    <script src="icon.js"></script>
+
+    <h2>请粘贴书源：</h2>
+    <textarea id="myTextarea" placeholder="在这里粘贴..."></textarea>
+    <br>
+    <button id="submitButton" disabled>提交</button>
+
+    <div class="file-upload">
+        <h2>上传文件：</h2>
+        <div class="button-group">
+            <div class="custom-file-upload">
+                <label class="action-btn">
+                    <i>📁</i>选择文件
+                    <input type="file" id="fileInput" accept=".json, .txt">
+                </label>
+            </div>
+            <button id="exportButton" onclick="exportToFile()" class="action-btn">
+                <i>💾</i>导出本地
+            </button>
+            <button id="uploadButton" disabled>开始分析</button>
+            <button id="showContentButton" onclick="showFullContent()">显示内容</button>
+            <button id="filterDuplicateButton" onclick="highlightDuplicates()" class="action-btn">
+                <i>🔍</i>筛选重复
+            </button>
+            <button id="checkDuplicateButton" onclick="checkDuplicates()" class="action-btn">
+                <i>✓</i>勾选重复
+            </button>
+        </div>
+    </div>
+
+    <div id="fileContentContainer">
+        <div id="tableContainer"></div>
+        <div id="textareaContainer" style="display: none; margin-top: 20px;">
+            <textarea id="fullContent" readonly style="height: 300px;"></textarea>
+        </div>
+    </div>
+
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-header">
+            <h3>编辑书源</h3>
+            <button class="edit-modal-close" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="edit-form">
+            <textarea id="editContent" spellcheck="false"></textarea>
+            <button onclick="saveEdit()" class="action-btn" style="margin-top: 10px;">
+                <i>💾</i>保存修改
+            </button>
+        </div>
+    </div>
+
+   
+
+    <script>
+        let originalJsonContent = '';
+        let editedCount = 0;
+        let deletedCount = 0;
+        let originalCount = 0;
+
+        // 保存原始数据的副本
+        let originalJsonData = [];
+
+        // 获取元素
+        const textarea = document.getElementById('myTextarea');
+        const submitButton = document.getElementById('submitButton');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const fileContentContainer = document.getElementById('fileContentContainer');
+        const fileContent = document.getElementById('fileContent');
+        const fileContent1 = document.getElementById('fileContent');
+
+        // 监听输入事件
+        textarea.addEventListener('input', function () {
+            if (textarea.value.trim() !== "") {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        });
+
+        // 监听文件选择事件
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (file) {
+                const fileName = file.name;
+                const validExtensions = ['.json', '.txt'];
+                const fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+                if (validExtensions.includes(fileExtension)) {
+                    uploadButton.disabled = false;
+                } else {
+                    uploadButton.disabled = true;
+                    alert('只允许上传 .json 或 .txt 格式的文件');
+                    fileInput.value = ''; // 清空文件输入框
+                }
+            } else {
+                uploadButton.disabled = true;
+            }
+        });
+
+        // 提交按钮点击事件
+        submitButton.addEventListener('click', function () {
+            const content = textarea.value.trim();
+            if (content !== "") {
+                alert('提交内容: ' + content);
+                // 在这里添加您需要执行的提交逻辑
+            }
+        });
+
+        // 修改文件上传处理
+        uploadButton.addEventListener('click', function () {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const fileContentText = e.target.result;
+                        originalJsonContent = fileContentText;
+                        const jsonData = JSON.parse(fileContentText);
+                        if (Array.isArray(jsonData)) {
+                            window.jsonData = jsonData;
+                            originalCount = jsonData.length; // 保存原始数量
+                            editedCount = 0;
+                            deletedCount = 0;
+                            renderTable(jsonData);
+                            updateStats();
+                        } else {
+                            alert('JSON 文件格式不正确: 不是数组格式');
+                        }
+                    } catch (error) {
+                        alert('解析 JSON 文件失败');
+                    }
+                }
+                reader.readAsText(file);
+            }
+        });
+
+        // 显示完整内容函数
+        function showFullContent() {
+            const textareaContainer = document.getElementById('textareaContainer');
+            const fullContent = document.getElementById('fullContent');
+            textareaContainer.style.display = 'block';
+            fullContent.value = originalJsonContent;
+            textareaContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 修改 toggleRow 函数
+        function toggleRow(index) {
+            const row = document.querySelector(`tr[data-index="${index}"]`);
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            const buttons = row.querySelectorAll('button');
+            
+            buttons.forEach(button => {
+                button.disabled = !checkbox.checked;
+                if (!checkbox.checked) {
+                    button.style.backgroundColor = '#d1d5db';
+                    button.style.cursor = 'not-allowed';
+                } else {
+                    button.style.backgroundColor = button.classList.contains('edit') ? '#3b82f6' : '#ef4444';
+                    button.style.cursor = 'pointer';
+                }
+            });
+        }
+
+        // 修改 toggleAll 函数
+        function toggleAll() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const allCheckboxes = document.querySelectorAll('tr[data-index] input[type="checkbox"]');
+            const allButtons = document.querySelectorAll('tr[data-index] button');
+            
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            allButtons.forEach(button => {
+                button.disabled = !selectAllCheckbox.checked;
+                button.classList.toggle('disabled-button', !selectAllCheckbox.checked);
+            });
+        }
+
+        // 修改 deleteRow 函数
+        function deleteRow(index) {
+            if (confirm('确定要删除这条记录吗？')) {
+                window.jsonData.splice(index, 1);
+                deletedCount++;
+                originalJsonContent = JSON.stringify(window.jsonData, null, 2);
+                renderTable(window.jsonData);
+                updateStats();
+                if (document.getElementById('textareaContainer').style.display === 'block') {
+                    showFullContent();
+                }
+            }
+        }
+
+        // 修改 editRow 函数
+        function editRow(index) {
+            const item = window.jsonData[index];
+            const modal = document.getElementById('editModal');
+            const editContent = document.getElementById('editContent');
+            
+            // 格式化显示当前书源内容
+            editContent.value = JSON.stringify(item, null, 2);
+            
+            // 保存当前编辑的索引
+            modal.dataset.editIndex = index;
+            
+            // 显示弹窗
+            modal.classList.add('show');
+            
+            // 聚焦到文本框
+            editContent.focus();
+        }
+
+        // 渲染表格函数
+        function renderTable(jsonData) {
+            let htmlContent = '<table>';
+            htmlContent += `
+                <tr>
+                    <td colspan="5" class="table-header-actions">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="selectAll" onchange="toggleAll()">
+                            <label for="selectAll">全选</label>
+                        </div>
+                        <button onclick="deleteSelected()" class="action-button delete">删除选中</button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>序号</th>
+                    <th><input type="checkbox" disabled></th>
+                    <th>书源名称</th>
+                    <th>书源URL</th>
+                    <th>操作</th>
+                </tr>`;
+            
+            jsonData.forEach((item, index) => {
+                const name = item.bookSourceName || 'N/A';
+                const url = item.bookSourceUrl || 'N/A';
+                htmlContent += `
+                    <tr data-index="${index}">
+                        <td>${index + 1}</td>
+                        <td><input type="checkbox" onchange="toggleRow(${index})"></td>
+                        <td>${name}</td>
+                        <td>${url}</td>
+                        <td>
+                            <button class="action-button edit" onclick="editRow(${index})" disabled>编辑</button>
+                            <button class="action-button delete" onclick="deleteRow(${index})" disabled>删除</button>
+                        </td>
+                    </tr>`;
+            });
+            htmlContent += '</table>';
+            document.getElementById('tableContainer').innerHTML = htmlContent;
+        }
+
+        // 添加一些样式来突出显示选中的文本
+        const style = document.createElement('style');
+        style.textContent = `
+            #fullContent::selection {
+                background: #ffd700;
+                color: #000;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 更新统计信息的函数
+        function updateStats() {
+            const currentCount = window.jsonData ? window.jsonData.length : 0;
+            const urlMap = new Map();
+            let duplicateCount = 0;
+            
+            if (window.jsonData) {
+                window.jsonData.forEach(item => {
+                    if (urlMap.has(item.bookSourceUrl)) {
+                        duplicateCount++;
+                    } else {
+                        urlMap.set(item.bookSourceUrl, true);
+                    }
+                });
+            }
+            
+            animateNumber('originalCount', originalCount);
+            animateNumber('currentCount', currentCount);
+            animateNumber('editedCount', editedCount);
+            animateNumber('deletedCount', deletedCount);
+            animateNumber('duplicateCount', duplicateCount);
+     
+        }
+
+        // 数字动画效果
+        function animateNumber(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            const startNumber = parseInt(element.textContent);
+            const duration = 1000; // 动画持续时间（毫秒）
+            const steps = 60; // 动画步数
+            const stepValue = (targetNumber - startNumber) / steps;
+            let currentStep = 0;
+
+            const animation = setInterval(() => {
+                currentStep++;
+                const currentNumber = Math.round(startNumber + (stepValue * currentStep));
+                element.textContent = currentNumber;
+
+                if (currentStep >= steps) {
+                    element.textContent = targetNumber;
+                    clearInterval(animation);
+                }
+            }, duration / steps);
+        }
+
+        // Help Icon 交互
+        const helpIcon = document.getElementById('help-icon');
+        const tooltip = document.querySelector('.tooltip');
+
+        helpIcon.addEventListener('mouseenter', () => {
+            tooltip.classList.add('show');
+        });
+
+        helpIcon.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+        });
+
+        // 在适当的地方调用更新统计信息
+        // 例如：文件加载后、编辑后、删除后等
+        function handleDataChange() {
+            updateStats();
+        }
+
+        // 导出功能
+        function exportToFile() {
+            const selectedRows = document.querySelectorAll('tr[data-index] input[type="checkbox"]:checked');
+            
+            if (selectedRows.length === 0) {
+                alert('未选中可导出的内容！');
+                return;
+            }
+            
+            // 收集选中行的数据
+            const exportData = [];
+            selectedRows.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const index = parseInt(row.getAttribute('data-index'));
+                if (window.jsonData[index]) {
+                    exportData.push(window.jsonData[index]);
+                }
+            });
+            
+            if (exportData.length === 0) {
+                alert('没有可导出的内容！');
+                return;
+            }
+            
+            try {
+                const formattedContent = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([formattedContent], { type: 'application/json' });
+                
+                // 使用 showSaveFilePicker API
+                window.showSaveFilePicker({
+                    suggestedName: 'exported_sources.json',
+                    types: [{
+                        description: 'JSON File',
+                        accept: {'application/json': ['.json']},
+                    }, {
+                        description: 'Text File',
+                        accept: {'text/plain': ['.txt']},
+                    }],
+                }).then(async (handle) => {
+                    const writable = await handle.createWritable();
+                    await writable.write(formattedContent);
+                    await writable.close();
+                }).catch(err => {
+                    if (err.name !== 'AbortError') {
+                        alert('导出失败：' + err.message);
+                    }
+                    
+                    const blob = new Blob([formattedContent], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filePath.substring(filePath.lastIndexOf('\\') + 1);
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+                
+                input.click();
+            } catch (error) {
+                alert('导出失败：' + error.message);
+            }
+        }
+
+        // 实现删除选中功能
+        function deleteSelected() {
+            const selectedIndexes = [];
+            document.querySelectorAll('tr[data-index] input[type="checkbox"]').forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    selectedIndexes.unshift(index); // 从后往前删除
+                }
+            });
+            
+            if (selectedIndexes.length === 0) {
+                alert('请先选择要删除的项目');
+                return;
+            }
+            
+            if (confirm(`确定要删除选中的 ${selectedIndexes.length} 项吗？`)) {
+                selectedIndexes.forEach(index => {
+                    window.jsonData.splice(index, 1);
+                    deletedCount++;
+                });
+                
+                originalJsonContent = JSON.stringify(window.jsonData, null, 2);
+                renderTable(window.jsonData);
+                updateStats();
+                
+                if (document.getElementById('textareaContainer').style.display === 'block') {
+                    showFullContent();
+                }
+            }
+        }
+
+        // 在文件加载时保存原始数据
+        function handleFileLoad(jsonData) {
+            originalJsonData = JSON.parse(JSON.stringify(jsonData)); // 深拷贝
+            window.jsonData = jsonData;
+            // ... 其他代码
+        }
+
+        // 更新编辑计数
+        function updateEditedCount() {
+            let editCount = 0;
+            window.jsonData.forEach((item, index) => {
+                if (index < originalJsonData.length) {
+                    if (JSON.stringify(item) !== JSON.stringify(originalJsonData[index])) {
+                        editCount++;
+                    }
+                }
+            });
+            return editCount;
+        }
+
+        function findDuplicateUrls() {
+            const urlMap = new Map();
+            const duplicates = new Set();
+            
+            window.jsonData.forEach((item, index) => {
+                if (urlMap.has(item.bookSourceUrl)) {
+                    duplicates.add(item.bookSourceUrl);
+                } else {
+                    urlMap.set(item.bookSourceUrl, index);
+                }
+            });
+            
+            return duplicates;
+        }
+
+        function highlightDuplicates() {
+            // 先清除之前的高亮
+            document.querySelectorAll('tr.duplicate-highlight').forEach(row => {
+                row.classList.remove('duplicate-highlight');
+            });
+            
+            const duplicateUrls = findDuplicateUrls();
+            window.jsonData.forEach((item, index) => {
+                if (duplicateUrls.has(item.bookSourceUrl)) {
+                    const row = document.querySelector(`tr[data-index="${index}"]`);
+                    if (row) {
+                        row.classList.add('duplicate-highlight');
+                    }
+                }
+            });
+        }
+
+        function checkDuplicates() {
+            const duplicateUrls = findDuplicateUrls();
+            window.jsonData.forEach((item, index) => {
+                if (duplicateUrls.has(item.bookSourceUrl)) {
+                    const row = document.querySelector(`tr[data-index="${index}"]`);
+                    if (row) {
+                        const checkbox = row.querySelector('input[type="checkbox"]');
+                        checkbox.checked = true;
+                        toggleRow(index); // 更新按钮状态
+                    }
+                }
+            });
+        }
+
+        // 关闭编辑弹窗
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('show');
+        }
+
+        // 保存编辑内容
+        function saveEdit() {
+            const modal = document.getElementById('editModal');
+            const editContent = document.getElementById('editContent');
+            const index = parseInt(modal.dataset.editIndex);
+            
+            try {
+                const newData = JSON.parse(editContent.value);
+                window.jsonData[index] = newData;
+                editedCount++;
+                updateStats();
+                renderTable(window.jsonData);
+                closeEditModal();
+                
+                // 更新原始JSON内容
+                originalJsonContent = JSON.stringify(window.jsonData, null, 2);
+                if (document.getElementById('textareaContainer').style.display === 'block') {
+                    showFullContent();
+                }
+            } catch (error) {
+                alert('JSON格式错误，请检查后重试');
+            }
+        }
+    </script>
+
+</body>
+
+</html>
